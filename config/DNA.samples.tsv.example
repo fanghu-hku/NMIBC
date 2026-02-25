@@ -1,0 +1,4 @@
+# Sample list format for DNA/WGS (tab-separated):
+# sample_name	tumor_fq1	tumor_fq2	normal_fq1	normal_fq2
+# Example:
+# BJB001	/path/to/BJB001T_1.fq.gz	/path/to/BJB001T_2.fq.gz	/path/to/BJB001N_1.fq.gz	/path/to/BJB001N_2.fq.gz

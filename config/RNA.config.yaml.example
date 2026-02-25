@@ -1,0 +1,44 @@
+#
+# Snakemake configuration file for RNA-seq pipeline
+# Copy this file to RNA.config.yaml and modify paths as needed
+#
+
+# samples file path
+# Format: sample_name\tfq1\tfq2
+params:
+  samples: "config/RNA.samples.tsv"
+
+# output directory
+output:
+  relative: "/path/to/output"
+  fastp: "01.fastp"
+  star_fusion: "02.star_fusion"
+  TE_salmon: "03.TE_salmon"
+  trust4: "04.trust4"
+  kraken: "05.kraken"
+  salmon: "06.salmon"
+
+# software paths
+softwares:
+  fastp: "fastp"
+  seqkit: "seqkit"
+  star_fusion: "STAR-Fusion"
+  salmon: "salmon"
+
+# databases
+databases:
+  GRCh38: "/path/to/reference/GRCh38.primary_assembly.genome.fa"
+  star_fusion_lib: "/path/to/CTAT_lib"
+  salmon_index: "/path/to/salmon_index"
+  TE_index: "/path/to/REdiscoverTE_index"
+  trust4_ref: "/path/to/trust4/human_IMGT+C.fa"
+
+# fastp parameters
+fastp:
+  f_adapter: "AGTCGGAGGCCAAGCGGTCTTAGGAAGACAA"
+  r_adapter: "GAACGACATGGCTACGATCCGACTT"
+  q: 20
+  u: 5
+  n: 6
+  length_required: 18
+  threads: 4

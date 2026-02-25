@@ -1,0 +1,4 @@
+# Sample list format for RNA-seq (tab-separated):
+# sample_name	fq1	fq2
+# Example:
+# BJB001	/path/to/BJB001_1.fq.gz	/path/to/BJB001_2.fq.gz

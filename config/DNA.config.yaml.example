@@ -1,0 +1,73 @@
+#
+# Snakemake configuration file for DNA pipeline
+# Copy this file to config.yaml and modify paths as needed
+#
+
+# samples file path
+# Format: sample_name\ttumor_fq1\ttumor_fq2\tnormal_fq1\tnormal_fq2
+units: "config/samples.tsv"
+
+# output directory
+output:
+  relative: "/path/to/output"
+  fastp: "01.fastp"
+  bwa: "02.bwa"
+  dup: "03.MarkDuplicates"
+  mutect2_pon: "04.pon"
+  mutect2withpon: "05.mutect2withpon"
+  GetPileupSummaries: "06.GetPileupSummaries"
+  FilterMutect2WithPON: "07.FilterMutect2WithPON"
+  FREEC: "08.FREEC"
+  GISTIC: "09.GISTIC"
+  cnvkit_GISTIC: "cnvkit_GISTIC"
+  manta: "10.manta"
+  sequenza: "sequenza"
+  svaba: "svaba"
+  strelka: "strelka"
+  AnnotSV: "AnnotSV"
+  GermlineSNPs: "GermlineSNPs"
+  GermlineSNPs_db: "GermlineSNPs_db"
+  GermlineSNPs_db2: "GermlineSNPs_result"
+  cnvkit: "cnvkit"
+  kraken: "kraken"
+  AA_cnvkit: "AA_cnvkit"
+  AmpliconArchitect: "AmpliconArchitect"
+  AmpliconArchitect2: "AmpliconArchitect2"
+  gatk_cnv: "gatk_cnv"
+  JaBbA: "JaBbA"
+  neoSV: "neoSV"
+  smoove: "smoove"
+  mergeSV: "merge_SV"
+  SURVIVOR: "SURVIVOR"
+
+# software paths (use conda environments or full paths)
+softwares:
+  fastp: "fastp"
+  seqkit: "seqkit"
+  bowtie: "bowtie"
+  samtools: "samtools"
+  gatk: "gatk"
+
+# reference databases
+databases:
+  GRCh38: "/path/to/reference/GRCh38.primary_assembly.genome.fa"
+  pon: "/path/to/panel_of_normals.vcf"
+  dbSNP: "/path/to/dbSNP.vcf.gz"
+  G1000: "/path/to/1000G.vcf.gz"
+  ClinVar: "/path/to/clinvar.vcf.gz"
+  COSMIC1: "/path/to/CosmicCodingMuts.vcf.gz"
+  COSMIC2: "/path/to/CosmicNonCodingVariants.vcf.gz"
+  GnomdAD_AF: "/path/to/af-only-gnomad.vcf.gz"
+  Intervals: "/path/to/genome.interval_list"
+  intervals: "/path/to/genome.CommonChr.interval_list"
+
+# fastp parameters
+fastp:
+  f_adapter: "AGTCGGAGGCCAAGCGGTCTTAGGAAGACAA"
+  r_adapter: "GAACGACATGGCTACGATCCGACTT"
+  q: 20      # minimum quality score
+  u: 10      # max percent of unqualified bases
+  n: 1       # max N bases in read
+  length_required: 15
+  length_limit: 40
+  threads: 4

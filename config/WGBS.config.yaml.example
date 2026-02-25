@@ -1,0 +1,22 @@
+#
+# Snakemake configuration file for WGBS (methylation) pipeline
+# Copy this file to WGBS.config.yaml and modify paths as needed
+#
+
+# samples file path
+# Format: sample_name\tfq1\tfq2
+params:
+  samples: "config/WGBS.samples.tsv"
+
+# output directory
+output:
+  relative: "/path/to/output"
+  fastp: "01.fastp"
+  bismark: "02.bismark"
+  methylation: "03.methylation"
+  FilterCoverage: "04.FilterCoverage"
+
+# databases
+databases:
+  GRCh38: "/path/to/reference/GRCh38.primary_assembly.genome.fa"
+  bismark_index: "/path/to/Bismark_index"

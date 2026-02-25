@@ -1,0 +1,90 @@
+# Cluster configuration for Snakemake
+# Adapt resource requirements based on your cluster
+
+__default__:
+  queue: "all.q"
+  workdir: "./"
+  p: ""
+  mem: "4G"
+  cores: 2
+
+# QC and preprocessing
+fastp_T:
+  mem: "20G"
+  cores: 4
+
+fastp_N:
+  mem: "20G"
+  cores: 4
+
+BWA_T:
+  mem: "100G"
+  cores: 8
+
+BWA_N:
+  mem: "100G"
+  cores: 8
+
+MarkDuplicates_T:
+  mem: "100G"
+  cores: 10
+
+MarkDuplicates_N:
+  mem: "100G"
+  cores: 10
+
+BQSR_T:
+  mem: "80G"
+  cores: 4
+
+BQSR_N:
+  mem: "80G"
+  cores: 4
+
+ApplyBQSR_T:
+  mem: "64G"
+  cores: 8
+
+ApplyBQSR_N:
+  mem: "64G"
+  cores: 8
+
+# Variant calling
+Mutect2WithPON:
+  mem: "64G"
+  cores: 4
+
+FilterMutect2WithPON:
+  mem: "32G"
+  cores: 2
+
+# SV calling
+manta:
+  mem: "32G"
+  cores: 4
+
+svaba:
+  mem: "32G"
+  cores: 4
+
+strelka:
+  mem: "32G"
+  cores: 4
+
+# CNV analysis
+FREEC:
+  mem: "32G"
+  cores: 4
+
+cnvkit:
+  mem: "32G"
+  cores: 4
+
+sequenza:
+  mem: "16G"
+  cores: 2
+
+# Depth
+samtools_depth:
+  mem: "10G"
+  cores: 2

@@ -1,0 +1,23 @@
+#
+# Snakemake configuration file for small RNA pipeline
+# Copy this file to smallRNA.config.yaml and modify paths as needed
+#
+
+# samples file path
+# Format: sample_name\tfq
+units: "config/smallRNA.samples.tsv"
+
+# directories
+working_dir: "/path/to/working"
+result_dir: "/path/to/result"
+
+# databases
+databases:
+  GRCh38: "/path/to/reference/GRCh38.primary_assembly.genome.fa"
+  gtf: "/path/to/gencode.annotation.gtf"
+  mirbase_gff: "/path/to/mirbase.gff"
+  mirbase_bed: "/path/to/mirbase.bed"
+  pirna_bed: "/path/to/piRNA.bed"
+  pirna_gff: "/path/to/piRbase.gff"
+  bowtie_index: "/path/to/bowtie_index"
+  salmon_index: "/path/to/salmon_index"

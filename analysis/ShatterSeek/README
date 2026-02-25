@@ -1,0 +1,44 @@
+# ShatterSeek 分析流程
+
+检测染色体碎裂(chromothripsis)事件。
+
+## 输入文件格式
+
+### SV文件 (sv.csv)
+```
+chrom1  start1  chrom2  end2  SVtype  strand1  strand2
+chr1    1000    chr1    2000  DEL     +        -
+```
+
+### CNV文件 (cn.csv)
+```
+chrom   start   end     CN
+chr1    1000    2000    3
+```
+
+## 使用方法
+
+### 1. 准备输入文件
+```bash
+sh prepare_input.sh <sample_name> <svaba_anno> <manta_anno> <jabba_seg> <output_dir>
+```
+
+### 2. 运行ShatterSeek
+```bash
+Rscript ShatterSeek.R -s sv.csv -c cn.csv -n sample_name -o output_dir
+```
+
+### 3. 重新绑图（可选）
+```bash
+Rscript plot_ShatterSeek.R -r sample.chromothripsis.Rdata -n sample_name -c chr1 -o output_dir --redir result_dir
+```
+
+## 输出文件
+
+- `sample.chromothripsis.Rdata` - R对象文件
+- `sample.chromSummary.txt` - 染色体碎裂事件汇总
+- `chr*.pdf` - 各染色体可视化图
+
+## 依赖
+
+- R包: ShatterSeek, optparse, gridExtra, cowplot, ggplot2

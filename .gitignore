@@ -1,0 +1,10 @@
+# Temporary files
+temp/
+
+# AI assistant files
+CLAUDE.md
+
+# Common system files
+.DS_Store
+*.swp
+*~

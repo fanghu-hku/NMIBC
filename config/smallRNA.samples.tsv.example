@@ -1,0 +1,5 @@
+# Sample list format for small RNA (tab-separated):
+# sample_name	fq
+# Note: small RNA is single-end sequencing
+# Example:
+# BJB001	/path/to/BJB001.fq.gz

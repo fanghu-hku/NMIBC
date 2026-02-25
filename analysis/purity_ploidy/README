@@ -1,0 +1,41 @@
+# 肿瘤纯度和倍性分析
+
+包含 ABSOLUTE 和 sequenza 两种方法。
+
+## ABSOLUTE
+
+基于CNV segment数据进行肿瘤纯度和倍性估计。
+
+### 输入文件格式 (.seg)
+```
+ID  chrom   loc.start   loc.end num.mark    seg.mean
+sample1 chr1    1000    2000    50  0.5
+```
+
+### 使用方法
+```bash
+Rscript run_absolute.R --seg sample.seg --name sample_name --outdir output_dir
+```
+
+### 参数说明
+- `--seg`: segment文件路径
+- `--name`: 样本名称
+- `--outdir`: 输出目录
+- `--disease`: 疾病类型 (默认: BLCA)
+- `--min.ploidy`: 最小倍性 (默认: 0.5)
+- `--max.ploidy`: 最大倍性 (默认: 8)
+
+## sequenza
+
+基于WGS/WES数据进行肿瘤纯度和倍性估计。
+
+### 输入文件
+sequenza处理的seqz文件 (由sequenza-utils生成)
+
+### 使用方法
+```bash
+Rscript run_sequenza.R <sample_name> <input.seqz.gz> <output_dir>
+```
+
+### 依赖
+- R包: ABSOLUTE, numDeriv, optparse, sequenza
