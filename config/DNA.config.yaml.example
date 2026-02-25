@@ -1,11 +1,11 @@
 #
 # Snakemake configuration file for DNA pipeline
-# Copy this file to config.yaml and modify paths as needed
+# Copy this file to DNA.config.yaml and modify paths as needed
 #
 
 # samples file path
 # Format: sample_name\ttumor_fq1\ttumor_fq2\tnormal_fq1\tnormal_fq2
-units: "config/samples.tsv"
+units: "config/DNA.samples.tsv"
 
 # output directory
 output:
@@ -21,36 +21,57 @@ output:
   GISTIC: "09.GISTIC"
   cnvkit_GISTIC: "cnvkit_GISTIC"
   manta: "10.manta"
-  sequenza: "sequenza"
-  svaba: "svaba"
-  strelka: "strelka"
-  AnnotSV: "AnnotSV"
-  GermlineSNPs: "GermlineSNPs"
+  sequenza: "11.sequenza"
+  svaba: "12.svaba"
+  strelka: "13.strelka"
+  AnnotSV: "14.AnnotSV"
+  GermlineSNPs: "15.GermlineSNPs"
   GermlineSNPs_db: "GermlineSNPs_db"
   GermlineSNPs_db2: "GermlineSNPs_result"
-  cnvkit: "cnvkit"
-  kraken: "kraken"
+  cnvkit: "16.cnvkit"
+  kraken: "17.kraken"
   AA_cnvkit: "AA_cnvkit"
   AmpliconArchitect: "AmpliconArchitect"
   AmpliconArchitect2: "AmpliconArchitect2"
-  gatk_cnv: "gatk_cnv"
-  JaBbA: "JaBbA"
-  neoSV: "neoSV"
-  smoove: "smoove"
-  mergeSV: "merge_SV"
+  gatk_cnv: "18.gatk_cnv"
+  JaBbA: "19.JaBbA"
+  neoSV: "20.neoSV"
+  smoove: "21.smoove"
+  mergeSV: "22.merge_SV"
   SURVIVOR: "SURVIVOR"
 
-# software paths (use conda environments or full paths)
+# software paths
 softwares:
   fastp: "fastp"
   seqkit: "seqkit"
-  bowtie: "bowtie"
+  bwa: "bwa"
   samtools: "samtools"
   gatk: "gatk"
+  freec: "freec"
+  freec2bed: "freec2bed.pl"
+  gistic2: "gistic2"
+  manta_config: "configManta.py"
+  sequenza_utils: "sequenza-utils"
+  svaba: "svaba"
+  strelka_config: "configureStrelkaSomaticWorkflow.py"
+  AnnotSV: "AnnotSV.tcl"
+  neosv: "neosv"
+  cnvkit: "cnvkit.py"
+  kraken2: "kraken2"
+  bracken: "bracken"
+  frag: "frag"
+  jabba: "jba"
+  smoove: "smoove"
+  python: "python"
+  perl: "perl"
+  Rscript: "Rscript"
+  conda: "conda"
 
-# reference databases
+# databases
 databases:
   GRCh38: "/path/to/reference/GRCh38.primary_assembly.genome.fa"
+  GRCh38_dict: "/path/to/reference/GRCh38.primary_assembly.genome.dict"
+  GRCh38_bed: "/path/to/reference/GRCh38.primary_assembly.genome.CommonChr.bed"
   pon: "/path/to/panel_of_normals.vcf"
   dbSNP: "/path/to/dbSNP.vcf.gz"
   G1000: "/path/to/1000G.vcf.gz"
@@ -58,16 +79,55 @@ databases:
   COSMIC1: "/path/to/CosmicCodingMuts.vcf.gz"
   COSMIC2: "/path/to/CosmicNonCodingVariants.vcf.gz"
   GnomdAD_AF: "/path/to/af-only-gnomad.vcf.gz"
-  Intervals: "/path/to/genome.interval_list"
+  gnomad: "/path/to/gnomad.vcf.gz"
+  Intervals: "/path/to/intervals.interval_list"
   intervals: "/path/to/genome.CommonChr.interval_list"
+  interval_dir: "/path/to/splited_intervals"
+  kraken2db: "/path/to/kraken2db"
+  refgene: "/path/to/refgenefiles/hg38.refgene.mat"
+  refFlat: "/path/to/refFlat.txt"
+  frag_db: "/path/to/frag_db"
+  hg38_wig: "/path/to/hg38.Base.wig.gz"
+  gatk_cnv_dir: "/path/to/gatk_cnv"
+  gatk_cnv_pon: "/path/to/gatk_cnv/pon.hdf5"
+  gatk_cnv_intervals: "/path/to/gatk_cnv/preprocessed.interval_list"
+  gatk_cnv_anno: "/path/to/gatk_cnv/annotated.tsv"
+
+# external scripts
+scripts:
+  cnv_bed: "scripts/cnv_bed.py"
+  gistic_seg: "scripts/GISTIC_Seg.py"
+  gem: "scripts/gem.sh"
+  file: "scripts/file.sh"
+  get_config: "scripts/get_config.sh"
+  freec_config: "scripts/freec_config.sh"
+  filter_coverage: "scripts/FilterCoverage.py"
+  step2_sequenza: "scripts/step2_sequenza.R"
+  clinical_csv: "scripts/clinical_raw.csv"
+
+# conda environments
+conda:
+  fastp: "fastp"
+  bwa: "bwa"
+  gatk: "gatk"
+  sequenza: "sequenza"
+  svaba: "svaba"
+  strelka: "sequenza"
+  AnnotSV: "AnnotSV"
+  neosv: "neosv"
+  cnvkit: "cnvkit"
+  kraken2: "kraken2"
+  JaBbA: "JaBbA"
+  smoove: "smoove"
+  ampliconsuite: "ampliconsuite"
 
 # fastp parameters
 fastp:
   f_adapter: "AGTCGGAGGCCAAGCGGTCTTAGGAAGACAA"
-  r_adapter: "GAACGACATGGCTACGATCCGACTT"
-  q: 20      # minimum quality score
-  u: 10      # max percent of unqualified bases
-  n: 1       # max N bases in read
+  r_adapter: "GAACGACATGGCTACGGATCCGACTT"
+  q: 20
+  u: 10
+  n: 1
   length_required: 15
   length_limit: 40
   threads: 4
