@@ -4,20 +4,33 @@
 #
 
 # samples file path
-# Format: sample_name\tfq
+# Format: sample_name\tfq (single-end)
 units: "config/smallRNA.samples.tsv"
 
 # directories
 working_dir: "/path/to/working"
 result_dir: "/path/to/result"
 
+# software paths
+softwares:
+  fastp: "fastp"
+  bowtie: "bowtie"
+  bowtie_build: "bowtie-build"
+  samtools: "samtools"
+  salmon: "salmon"
+  featureCounts: "featureCounts"
+  multiqc: "multiqc"
+
 # databases
 databases:
-  GRCh38: "/path/to/reference/GRCh38.primary_assembly.genome.fa"
-  gtf: "/path/to/gencode.annotation.gtf"
-  mirbase_gff: "/path/to/mirbase.gff"
-  mirbase_bed: "/path/to/mirbase.bed"
-  pirna_bed: "/path/to/piRNA.bed"
-  pirna_gff: "/path/to/piRbase.gff"
-  bowtie_index: "/path/to/bowtie_index"
-  salmon_index: "/path/to/salmon_index"
+  db_dir: "/path/to/db"
+  GRCh38: "/path/to/db/GRCh38.primary_assembly.genome.fa"
+  transcripts_fa: "/path/to/db/gencode.v41.transcripts.fa"
+  gentrome: "/path/to/db/gentrome.fasta"
+  gtf: "/path/to/db/gencode.v41.annotation.gtf"
+  mirbase_gff: "/path/to/db/mirbase.gff"
+  mirbase_bed: "/path/to/db/mirbase.bed"
+  bowtie_index: "/path/to/db/bowtie_index"
+  salmon_index: "/path/to/db/salmon_index"
+  pirna_bed: "/path/to/db/piRNA/piRNA.bed"
+  pirna_gff: "/path/to/db/piRNA/piRbase.gff"

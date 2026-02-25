@@ -2,7 +2,7 @@
 ####################################################
 #yanzeqin
 #2021/12/20
-#此流程步骤为小RNA的质控，比对，注释，定量
+#small RNA分析流程：miRNA/piRNA质控、比对、注释、定量
 #######################################################
 
 
@@ -14,7 +14,7 @@ import pandas as pd
 ###############
 # Configuration
 ###############
-configfile: "/datapool/zhuguanghui/multi.omics/yanzeqin/smallRNA/Script/config/config.yaml" # where to find parameters
+#configfile: "config/smallRNA.config.yaml"
 WORKING_DIR = config["working_dir"]
 RESULT_DIR = config["result_dir"]
 
@@ -49,27 +49,31 @@ rule all:
 
 rule get_genome_annotation_gff:
 	output:
-		dna="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/GRCh38.primary_assembly.genome.fa",
-		trans="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/new_Script/db/gencode.v41.transcripts.fa",
-		gentrome="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/gentrome.fasta",
-		gtf="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/gencode.v41.annotation.gtf",
-		gff="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/mirbase.gff",
-		bed="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/mirbase.bed",
-		index2=multiext("/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/bowtie_index",".1.ebwt",".2.ebwt",".3.ebwt",".4.ebwt",".rev.1.ebwt",".rev.2.ebwt"),
-		index=directory("/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/salmon_index")
+		dna=config["databases"]["GRCh38"],
+		trans=config["databases"]["transcripts_fa"],
+		gentrome=config["databases"]["gentrome"],
+		gtf=config["databases"]["gtf"],
+		gff=config["databases"]["mirbase_gff"],
+		bed=config["databases"]["mirbase_bed"],
+		index2=multiext(config["databases"]["bowtie_index"],".1.ebwt",".2.ebwt",".3.ebwt",".4.ebwt",".rev.1.ebwt",".rev.2.ebwt"),
+		index=directory(config["databases"]["salmon_index"])
+	params:
+		db_dir = config["databases"]["db_dir"],
+		bowtie_build = config["softwares"]["bowtie_build"],
+		salmon = config["softwares"]["salmon"]
 	shell:
 		"""
-		wget -P /datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/ ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/GRCh38.primary_assembly.genome.fa.gz
-		wget -P /datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/ ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.transcripts.fa.gz
+		wget -P {params.db_dir} ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/GRCh38.primary_assembly.genome.fa.gz
+		wget -P {params.db_dir} ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.transcripts.fa.gz
 		gzip -d GRCh38.primary_assembly.genome.fa.gz
 		gzip -d gencode.v41.transcripts.fa.gz
 		cat GRCh38.primary_assembly.genome.fa gencode.v41.transcripts.fa > gentrome.fasta
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/bowtie/bin/bowtie-build GRCh38.primary_assembly.genome.fa bowtie_index
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/salmon/bin/salmon index -k 21 -t gencode.v41.transcripts.fa --gencode -i salmon_index
-		wget -P /datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/ ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.annotation.gtf.gz
+		{params.bowtie_build} GRCh38.primary_assembly.genome.fa bowtie_index
+		{params.salmon} index -k 21 -t gencode.v41.transcripts.fa --gencode -i salmon_index
+		wget -P {params.db_dir} ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.annotation.gtf.gz
 		gzip -d gencode.v41.annotation.gtf.gz
 
-		wget -P /datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/ https://www.mirbase.org/ftp/22/genomes/hsa.gff3 --no-check-certificate
+		wget -P {params.db_dir} https://www.mirbase.org/ftp/22/genomes/hsa.gff3 --no-check-certificate
 		cat hsa.gff3 | awk '{{if ($3=="miRNA") print}}' > mirbase.gff
 		cat hsa.gff3 | awk 'BEGIN {{OFS = "\t"}};{{if ($3=="miRNA") print$1,$4-1,$5}}' > mirbase.bed
 		#piRNA
@@ -84,10 +88,12 @@ rule fastp:
 		html = RESULT_DIR + "{sample}/" +"fastp/{sample}_fastp.html",
 		zip = RESULT_DIR + "{sample}/" +"fastp/{sample}_fastp.fq.gz",
 		json = RESULT_DIR + "{sample}/" +"fastp/{sample}_fastp.json"
+	params:
+		fastp = config["softwares"]["fastp"]
 	log: RESULT_DIR + "{sample}/" + "fastp/{sample}.log"
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/fastp -w 4 \
+		{params.fastp} -w 4 \
 		-i {input} \
 		--adapter_sequence AGTCGGAGGCCAAGCGGTCTTAGGAAGACAA \
 		--adapter_sequence_r2 GAACGACATGGCTACGATCCGACTT \
@@ -99,15 +105,16 @@ rule fastp:
 rule bowtie_align:
 	input:
 		reads= RESULT_DIR + "{sample}/" +"fastp/{sample}_fastp.fq.gz",
-		index2=multiext("/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/bowtie_index",".1.ebwt",".2.ebwt",".3.ebwt",".4.ebwt",".rev.1.ebwt",".rev.2.ebwt")
+		index2=multiext(config["databases"]["bowtie_index"],".1.ebwt",".2.ebwt",".3.ebwt",".4.ebwt",".rev.1.ebwt",".rev.2.ebwt")
 	output:
 		temp(RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.sam")
 	params:
-		index=lambda w, input: os.path.commonprefix(input.index2).rstrip(".")
+		index=lambda w, input: os.path.commonprefix(input.index2).rstrip("."),
+		bowtie = config["softwares"]["bowtie"]
 	log: RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.log"
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/bowtie/bin/bowtie \
+		{params.bowtie} \
 		--threads 8 \
 		-n 1 \
 		-l 20 \
@@ -125,9 +132,11 @@ rule samtools_bam:
 		RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.sam"
 	output:
 		temp(RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.bam")
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools view -bS {input} > {output}
+		{params.samtools} view -bS {input} > {output}
 		"""
 
 rule samtools_sort:
@@ -135,9 +144,11 @@ rule samtools_sort:
 		RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.bam"
 	output:
 		RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.sorted.bam"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools sort -o {output} {input}
+		{params.samtools} sort -o {output} {input}
 		"""
 
 rule samtools_index:
@@ -145,9 +156,11 @@ rule samtools_index:
 		RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.sorted.bam"
 	output:
 		RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.sorted.bam.bai"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools index {input}
+		{params.samtools} index {input}
 		"""
 
 rule samtools_flagstat:
@@ -155,20 +168,24 @@ rule samtools_flagstat:
 		RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.sorted.bam"
 	output:
 		RESULT_DIR + "{sample}/" +"samtools/{sample}.flagstat"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools flagstat {input} > {output}
+		{params.samtools} flagstat {input} > {output}
 		"""
 
 rule samtools_filter_mirbase:
 	input:
 		bam=RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.sorted.bam",
-		bed="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/mirbase.bed"
+		bed=config["databases"]["mirbase_bed"]
 	output:
 		RESULT_DIR + "{sample}/" +"filtered_bam/{sample}.bam"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools view -b -h -L {input.bed} {input.bam}> {output}
+		{params.samtools} view -b -h -L {input.bed} {input.bam}> {output}
 		"""
 
 rule samtools_filter_mirbase_index:
@@ -176,15 +193,17 @@ rule samtools_filter_mirbase_index:
 		RESULT_DIR + "{sample}/" +"filtered_bam/{sample}.bam"
 	output:
 		RESULT_DIR + "{sample}/" +"filtered_bam/{sample}.bam.bai"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools index {input}
+		{params.samtools} index {input}
 		"""
 
 rule bedtools_annotate:
 	input:
 		bam=RESULT_DIR + "{sample}/" +"filtered_bam/{sample}.bam",
-		gff="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/mirbase.gff"
+		gff=config["databases"]["mirbase_gff"]
 	output:
 		RESULT_DIR + "{sample}/" +"annotation/{sample}.bed"
 	shell:
@@ -195,14 +214,16 @@ rule bedtools_annotate:
 rule featureCounts:
 	input:
 		bam=RESULT_DIR + "{sample}/" +"filtered_bam/{sample}.bam",
-		gff="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/mirbase.gff",
-		fasta="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/GRCh38.primary_assembly.genome.fa"
+		gff=config["databases"]["mirbase_gff"],
+		fasta=config["databases"]["GRCh38"]
 	output:
 		multiext(RESULT_DIR + "{sample}/" +"featureCounts/{sample}",".featureCounts", ".featureCounts.summary")
+	params:
+		featureCounts = config["softwares"]["featureCounts"]
 	log: RESULT_DIR + "{sample}/" +"featureCounts/{sample}.txt"
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/subread/bin/featureCounts \
+		{params.featureCounts} \
 		-T 2 \
 		-t miRNA \
 		-g Name \
@@ -222,9 +243,11 @@ rule samtools_bam2fastq:
 		RESULT_DIR + "{sample}/" + "filtered_bam/{sample}.bam"
 	output:
 		RESULT_DIR + "{sample}/" + "filtered_fastq/{sample}.fastq.gz"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools fastq {input} | gzip > {output}
+		{params.samtools} fastq {input} | gzip > {output}
 		"""
 
 rule salmon_quant:
@@ -235,10 +258,11 @@ rule salmon_quant:
 		result=directory(RESULT_DIR + "{sample}/" +"salmon/{sample}_quant")
 	params:
 		outdir=RESULT_DIR + "{sample}/" +"salmon/{sample}",
-		index="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/salmon_index"
+		index=config["databases"]["salmon_index"],
+		salmon = config["softwares"]["salmon"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/salmon/bin/salmon quant \
+		{params.salmon} quant \
 		-i {params.index} \
 		-l A \
 		-p 4 \
@@ -256,21 +280,24 @@ rule multiqc:
 	output:
 		RESULT_DIR +"qc_report/"+"multiqc_report.html"
 	params:
-		out2 =  RESULT_DIR  +"qc_report/"
+		out2 =  RESULT_DIR  +"qc_report/",
+		multiqc = config["softwares"]["multiqc"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/multiqc/bin/multiqc {input} -n multiqc_report -f -q -o {params.out2}
+		{params.multiqc} {input} -n multiqc_report -f -q -o {params.out2}
 		"""
 
 rule samtools_filter_piRNA:
 	input:
 		bam=RESULT_DIR + "{sample}/" +"bowtie_align/{sample}.sorted.bam",
-		bed="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/piRNA/piRNA.bed"
+		bed=config["databases"]["pirna_bed"]
 	output:
 		RESULT_DIR + "{sample}/" +"filtered_piRNAbam/{sample}.bam"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools view -b -h -L {input.bed} {input.bam}> {output}
+		{params.samtools} view -b -h -L {input.bed} {input.bam}> {output}
 		"""
 
 rule samtools_filter_piRNA_index:
@@ -278,23 +305,27 @@ rule samtools_filter_piRNA_index:
 		RESULT_DIR + "{sample}/" +"filtered_piRNAbam/{sample}.bam"
 	output:
 		RESULT_DIR + "{sample}/" +"filtered_piRNAbam/{sample}.bam.bai"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools index {input}
+		{params.samtools} index {input}
 		"""
 
 
 rule featureCounts_piRNA:
 	input:
 		bam=RESULT_DIR + "{sample}/" +"filtered_piRNAbam/{sample}.bam",
-		gff="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/piRNA/piRbase.gff",
-		fasta="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/GRCh38.primary_assembly.genome.fa"
+		gff=config["databases"]["pirna_gff"],
+		fasta=config["databases"]["GRCh38"]
 	output:
 		multiext(RESULT_DIR + "{sample}/" +"featureCounts_piRNA/{sample}",".featureCounts", ".featureCounts.summary")
+	params:
+		featureCounts = config["softwares"]["featureCounts"]
 	log: RESULT_DIR + "{sample}/" +"featureCounts_piRNA/{sample}.txt"
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/subread/bin/featureCounts \
+		{params.featureCounts} \
 		-T 2 \
 		-t piRNA \
 		-g Name \
@@ -314,9 +345,11 @@ rule samtools_bam2fastq_piRNA:
 		RESULT_DIR + "{sample}/" + "filtered_piRNAbam/{sample}.bam"
 	output:
 		RESULT_DIR + "{sample}/" + "filtered_piRNAfastq/{sample}.fastq.gz"
+	params:
+		samtools = config["softwares"]["samtools"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/fastp/bin/samtools fastq {input} | gzip > {output}
+		{params.samtools} fastq {input} | gzip > {output}
 		"""
 
 rule salmon_quant_piRNA:
@@ -327,10 +360,11 @@ rule salmon_quant_piRNA:
 		result=directory(RESULT_DIR + "{sample}/" +"piRNA_salmon/{sample}_quant")
 	params:
 		outdir=RESULT_DIR + "{sample}/" +"piRNA_salmon/{sample}",
-		index="/datapool/yanzeqin/project/multi_omics_Bladder/small_RNA/db/salmon_index"
+		index=config["databases"]["salmon_index"],
+		salmon = config["softwares"]["salmon"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/salmon/bin/salmon quant \
+		{params.salmon} quant \
 		-i {params.index} \
 		-l A \
 		-p 4 \
@@ -349,8 +383,9 @@ rule multiqc_piRNA:
 	output:
 		RESULT_DIR +"qc_piRNAreport/"+"multiqc_report.html"
 	params:
-		out2 =  RESULT_DIR  +"qc_piRNAreport/"
+		out2 =  RESULT_DIR  +"qc_piRNAreport/",
+		multiqc = config["softwares"]["multiqc"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/multiqc/bin/multiqc {input} -n multiqc_report -f -q -o {params.out2}
+		{params.multiqc} {input} -n multiqc_report -f -q -o {params.out2}
 		"""

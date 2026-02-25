@@ -16,7 +16,20 @@ output:
   methylation: "03.methylation"
   FilterCoverage: "04.FilterCoverage"
 
+# software paths
+softwares:
+  fastp: "fastp"
+  bismark: "bismark"
+  bowtie2_path: "/path/to/bowtie2"
+  deduplicate_bismark: "deduplicate_bismark"
+  bismark_methylation_extractor: "bismark_methylation_extractor"
+  python: "python"
+
 # databases
 databases:
   GRCh38: "/path/to/reference/GRCh38.primary_assembly.genome.fa"
   bismark_index: "/path/to/Bismark_index"
+
+# external scripts
+scripts:
+  filter_coverage: "/path/to/FilterCoverage.py"

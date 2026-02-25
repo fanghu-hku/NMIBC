@@ -2,10 +2,10 @@
 ####################################################
 #yanzeqin
 #2022/4/12
-#此流程步骤为lncRNA的基因融合检测
+#RNA-seq分析流程：QC、融合检测、转录本定量、免疫组库、微生物组分析
 #######################################################
 
-#configfile: "config.yaml"
+#configfile: "config/RNA.config.yaml"
 SAMPLES = {}
 with open(config["params"]["samples"], 'rb') as sinfo:
     for line in sinfo:
@@ -70,7 +70,6 @@ rule QC_fastp:
 
 
 
-
 rule star_fusion:
 	input:
 		clean_fq1 = os.path.join(config["output"]["relative"], "{sample}", config["output"]["fastp"], "{sample}.fastp_1.fq.gz"),
@@ -80,15 +79,14 @@ rule star_fusion:
 		star_abridged = os.path.join(config["output"]["relative"],"{sample}",config["output"]["star_fusion"],"star-fusion.fusion_predictions.abridged.tsv"),
 		star_predictions=os.path.join(config["output"]["relative"],"{sample}",config["output"]["star_fusion"],"star-fusion.fusion_predictions.tsv")
 	params:
-		output_dir = os.path.join(config["output"]["relative"],"{sample}",config["output"]["star_fusion"])
+		output_dir = os.path.join(config["output"]["relative"],"{sample}",config["output"]["star_fusion"]),
+		star_fusion = config["softwares"]["star_fusion"],
+		genome_lib = config["databases"]["star_fusion_lib"]
 	log:
 		os.path.join(config["output"]["relative"], "{sample}", config["output"]["star_fusion"], "logs/{sample}.star_fusion.logs")
 	shell:
 		'''
-		conda init bash
-		source /share/Data01/yanzeqin/software/snakemake/conda/etc/profile.d/conda.sh
-		conda activate /share/Data01/yanzeqin/software/snakemake/conda/envs/star-fusion1.6.0
-		STAR-Fusion --genome_lib_dir /datapool/yanzeqin/database/df_starfusion/GRCh38_gencode_v22_CTAT_lib_Mar012021.plug-n-play/ctat_genome_lib_build_dir/  \
+		{params.star_fusion} --genome_lib_dir {params.genome_lib}  \
 		--left_fq {input.clean_fq1}     \
 		--right_fq {input.clean_fq2}    \
 		--output_dir {params.output_dir}
@@ -101,13 +99,12 @@ rule TE_salmon:
 	output:
 		output_quant = os.path.join(config["output"]["relative"],"{sample}",config["output"]["TE_salmon"],"quant.sf")
 	params:
-		output_dir = os.path.join(config["output"]["relative"],"{sample}",config["output"]["TE_salmon"])
+		output_dir = os.path.join(config["output"]["relative"],"{sample}",config["output"]["TE_salmon"]),
+		salmon = config["softwares"]["salmon"],
+		te_index = config["databases"]["TE_index"]
 	shell:
 		'''
-		conda init bash
-		source /share/Data01/yanzeqin/software/snakemake/conda/etc/profile.d/conda.sh
-		conda activate /share/Data01/yanzeqin/software/snakemake/conda/envs/salmon
-		salmon quant -i /datapool/zhuguanghui/multi.omics/yanzeqin/software/TE/REdiscoverTE/REdiscoverTE  \
+		{params.salmon} quant -i {params.te_index}  \
 		--thread 4 --seqBias --libType A  \
 		-1 {input.clean_fq1}  \
 		-2 {input.clean_fq2}   \
@@ -118,20 +115,19 @@ rule REdiscoverTE:
 	input:
 		expand(os.path.join(config["output"]["relative"],"{sample}",config["output"]["TE_salmon"],"quant.sf"),sample=SAMPLES.keys())
 	output:
-		sampleslist = os.path.join(config["output"]["relative"] +"salmon_result_20220818"),
+		sampleslist = os.path.join(config["output"]["relative"] +"salmon_result"),
 		result = directory(config["output"]["relative"] +"/REdiscoverTE/")
 	params:
-		sam="sample"
+		sam="sample",
+		rollup_script = config["scripts"]["rollup_R"],
+		rollup_annotation = config["databases"]["rollup_annotation"]
 	shell:
 		"""
 		echo -e "{params.sam}\tquant_sf_path" > {output.sampleslist}
 		ls -1 {input}  |awk -F / '{{print $7"\t"$0}}' >> {output.sampleslist}
-		conda init bash
-		source /share/Data01/yanzeqin/software/snakemake/conda/etc/profile.d/conda.sh
-		conda activate /share/Data01/yanzeqin/software/snakemake/conda/envs/salmon
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/r4/bin/Rscript /datapool/zhuguanghui/multi.omics/yanzeqin/software/TE/REdiscoverTE/rollup.R \
+		Rscript {params.rollup_script} \
 		--metadata={output.sampleslist} \
-		--datadir=/datapool/zhuguanghui/multi.omics/yanzeqin/software/TE/REdiscoverTE/rollup_annotation/ \
+		--datadir={params.rollup_annotation} \
 		--nozero --threads=10 --assembly=hg38 \
 		--outdir={output.result}
 		"""
@@ -144,11 +140,13 @@ rule Salmon:
 	output:
 		output_quant = os.path.join(config["output"]["relative"],"{sample}",config["output"]["salmon"],"quant.sf")
 	params:
-		output_dir = os.path.join(config["output"]["relative"],"{sample}",config["output"]["salmon"])
+		output_dir = os.path.join(config["output"]["relative"],"{sample}",config["output"]["salmon"]),
+		salmon = config["softwares"]["salmon"],
+		salmon_index = config["databases"]["salmon_index"]
 	shell:
 		"""
-		/share/Data01/yanzeqin/software/snakemake/conda/envs/salmon/bin/salmon \
-		quant -i /share/database/openData/GRCh38_GENCODE/transcripts_index_salmon \
+		{params.salmon} \
+		quant -i {params.salmon_index} \
 		--gcBias -l A --thread 4 -1 {input.clean_fq1} -2 {input.clean_fq2} -o {params.output_dir}
 		"""
 
@@ -160,17 +158,16 @@ rule trust4:
 		output_quant = os.path.join(config["output"]["relative"],"{sample}",config["output"]["trust4"],"{sample}_report.tsv")
 	params:
 		output_dir = os.path.join(config["output"]["relative"],"{sample}",config["output"]["trust4"]),
-		name = os.path.join(config["output"]["relative"],"{sample}",config["output"]["trust4"],"{sample}")
+		name = os.path.join(config["output"]["relative"],"{sample}",config["output"]["trust4"],"{sample}"),
+		trust4 = config["softwares"]["trust4"],
+		trust4_ref = config["databases"]["trust4_ref"]
 	shell:
 		'''
 		mkdir -p {params.output_dir}
-		conda init bash
-		source /share/Data01/pengguoyu/App/anaconda3/etc/profile.d/conda.sh
-		conda activate /datapool/zhuguanghui/multi.omics/yzqsoftware/miniconda/envs/trust4
-		/datapool/zhuguanghui/multi.omics/yzqsoftware/miniconda/envs/trust4/bin/run-trust4 -f /datapool/yanzeqin/database/trust4/TRUST4/human_IMGT+C.fa --ref /datapool/yanzeqin/database/trust4/TRUST4/human_IMGT+C.fa -1 {input.clean_fq1} -2 {input.clean_fq2} -o {params.name} -t 8 
+		{params.trust4} -f {params.trust4_ref} --ref {params.trust4_ref} -1 {input.clean_fq1} -2 {input.clean_fq2} -o {params.name} -t 8
 		'''
 
-rule karken:
+rule kraken:
 	input:
 		clean_fq1 = os.path.join(config["output"]["relative"], "{sample}", config["output"]["fastp"], "{sample}.fastp_1.fq.gz"),
 		clean_fq2 = os.path.join(config["output"]["relative"], "{sample}", config["output"]["fastp"], "{sample}.fastp_2.fq.gz")
@@ -179,15 +176,15 @@ rule karken:
 		kreport=os.path.join(config["output"]["relative"],"{sample}",config["output"]["kraken"],"{sample}_1.kreport"),
 		bra=os.path.join(config["output"]["relative"],"{sample}",config["output"]["kraken"],"{sample}_1.bracken")
 	params:
-		dir=os.path.join(config["output"]["relative"],"{sample}",config["output"]["kraken"])
+		dir=os.path.join(config["output"]["relative"],"{sample}",config["output"]["kraken"]),
+		kraken2 = config["softwares"]["kraken2"],
+		bracken = config["softwares"]["bracken"],
+		kraken_db = config["databases"]["kraken2db"]
 	shell:
 		'''
 		mkdir -p {params.dir}
-		conda init bash
-		source /share/Data01/pengguoyu/App/anaconda3/etc/profile.d/conda.sh
-		conda activate /datapool/yanzeqin/software/anaconda/envs/kraken2
-		kraken2 --paired --gzip-compressed --use-names --threads 8 --output {output.kra} --report {output.kreport} --db /datapool/zhuguanghui/multi.omics/stLFR/kraken2db   \
+		{params.kraken2} --paired --gzip-compressed --use-names --threads 8 --output {output.kra} --report {output.kreport} --db {params.kraken_db}   \
 		{input.clean_fq1} {input.clean_fq2}
-		bracken -d /datapool/zhuguanghui/multi.omics/stLFR/kraken2db -i {output.kreport} -o {output.bra} -t 8
+		{params.bracken} -d {params.kraken_db} -i {output.kreport} -o {output.bra} -t 8
 		'''
 

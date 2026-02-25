@@ -24,14 +24,23 @@ softwares:
   seqkit: "seqkit"
   star_fusion: "STAR-Fusion"
   salmon: "salmon"
+  trust4: "run-trust4"
+  kraken2: "kraken2"
+  bracken: "bracken"
 
 # databases
 databases:
   GRCh38: "/path/to/reference/GRCh38.primary_assembly.genome.fa"
-  star_fusion_lib: "/path/to/CTAT_lib"
+  star_fusion_lib: "/path/to/CTAT_lib/ctat_genome_lib_build_dir"
   salmon_index: "/path/to/salmon_index"
   TE_index: "/path/to/REdiscoverTE_index"
+  rollup_annotation: "/path/to/rollup_annotation"
   trust4_ref: "/path/to/trust4/human_IMGT+C.fa"
+  kraken2db: "/path/to/kraken2db"
+
+# external scripts
+scripts:
+  rollup_R: "/path/to/rollup.R"
 
 # fastp parameters
 fastp:
