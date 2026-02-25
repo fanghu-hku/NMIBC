@@ -1,8 +1,8 @@
 #!/usr/bin/python
 ####################################################
-#yanzeqin
-#2021/12/20
-#small RNA分析流程：miRNA/piRNA质控、比对、注释、定量
+# Author: yanzeqin
+# Date: 2021-12-20
+# small RNA pipeline: miRNA/piRNA QC, alignment, annotation, quantification
 #######################################################
 
 

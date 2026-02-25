@@ -1,12 +1,12 @@
 #!/bin/bash
 # sample.sh
-# 根据样本名称判断Tumor/Normal类型
-# 用法: sh sample.sh <input_file> <output_file>
+# Classify Tumor/Normal type based on sample name
+# Usage: sh sample.sh <input_file> <output_file>
 
 input_file=$1
 output_file=$2
 
-# 读取输入文件并处理每一行
+# Read input file and process each line
 cat $input_file | while IFS=$'\t' read -r name path
 do
     if [[ $name == *"N"* ]]; then
@@ -18,5 +18,5 @@ do
     fi
 done > $output_file
 
-# 查看输出结果
+# View output results
 head $output_file

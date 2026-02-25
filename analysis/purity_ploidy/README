@@ -1,41 +1,42 @@
-# 肿瘤纯度和倍性分析
+# Tumor Purity and Ploidy Analysis
 
-包含 ABSOLUTE 和 sequenza 两种方法。
+Includes both ABSOLUTE and sequenza methods.
 
 ## ABSOLUTE
 
-基于CNV segment数据进行肿瘤纯度和倍性估计。
+Estimate tumor purity and ploidy from CNV segment data.
 
-### 输入文件格式 (.seg)
+### Input file format (.seg)
 ```
 ID  chrom   loc.start   loc.end num.mark    seg.mean
 sample1 chr1    1000    2000    50  0.5
 ```
 
-### 使用方法
+### Usage
 ```bash
 Rscript run_absolute.R --seg sample.seg --name sample_name --outdir output_dir
 ```
 
-### 参数说明
-- `--seg`: segment文件路径
-- `--name`: 样本名称
-- `--outdir`: 输出目录
-- `--disease`: 疾病类型 (默认: BLCA)
-- `--min.ploidy`: 最小倍性 (默认: 0.5)
-- `--max.ploidy`: 最大倍性 (默认: 8)
+### Parameters
+- `--seg`: Segment file path
+- `--name`: Sample name
+- `--outdir`: Output directory
+- `--disease`: Disease type (default: BLCA)
+- `--min.ploidy`: Minimum ploidy (default: 0.5)
+- `--max.ploidy`: Maximum ploidy (default: 8)
 
 ## sequenza
 
-基于WGS/WES数据进行肿瘤纯度和倍性估计。
+Estimate tumor purity and ploidy from WGS/WES data.
 
-### 输入文件
-sequenza处理的seqz文件 (由sequenza-utils生成)
+### Input files
+Seqz files processed by sequenza-utils
 
-### 使用方法
+### Usage
 ```bash
 Rscript run_sequenza.R <sample_name> <input.seqz.gz> <output_dir>
 ```
 
-### 依赖
-- R包: ABSOLUTE, numDeriv, optparse, sequenza
+## Dependencies
+
+- R packages: ABSOLUTE, numDeriv, optparse, sequenza

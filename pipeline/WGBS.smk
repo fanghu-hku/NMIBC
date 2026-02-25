@@ -1,8 +1,8 @@
 #!/usr/bin/python
 ####################################################
-#yanzeqin
-#2022/4/12
-#WGBS甲基化分析流程：QC、比对、去重、甲基化提取
+# Author: yanzeqin
+# Date: 2022-04-12
+# WGBS pipeline: QC, alignment, deduplication, methylation extraction
 #######################################################
 
 #configfile: "config/WGBS.config.yaml"

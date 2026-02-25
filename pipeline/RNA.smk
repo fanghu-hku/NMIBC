@@ -1,8 +1,8 @@
 #!/usr/bin/python
 ####################################################
-#yanzeqin
-#2022/4/12
-#RNA-seq分析流程：QC、融合检测、转录本定量、免疫组库、微生物组分析
+# Author: yanzeqin
+# Date: 2022-04-12
+# RNA-seq pipeline: QC, fusion detection, quantification, immune repertoire, microbiome
 #######################################################
 
 #configfile: "config/RNA.config.yaml"

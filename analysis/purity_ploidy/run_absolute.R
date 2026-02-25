@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # run_absolute.R
-# 运行ABSOLUTE进行肿瘤纯度和倍性分析
-# 用法: Rscript run_absolute.R --seg sample.seg --name sample_name --outdir output_dir
+# Run ABSOLUTE for tumor purity and ploidy analysis
+# Usage: Rscript run_absolute.R --seg sample.seg --name sample_name --outdir output_dir
 
 suppressMessages(suppressWarnings(library(numDeriv)))
 suppressMessages(suppressWarnings(library(optparse)))

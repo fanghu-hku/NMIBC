@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # ShatterSeek.R
-# 染色体碎裂(chromothripsis)检测分析
-# 用法: Rscript ShatterSeek.R -s sv.csv -c cn.csv -n sample_name -o output_dir
+# Chromothripsis detection analysis
+# Usage: Rscript ShatterSeek.R -s sv.csv -c cn.csv -n sample_name -o output_dir
 
 suppressPackageStartupMessages(library(optparse))
 
@@ -62,7 +62,7 @@ library(gridExtra)
 library(cowplot)
 library(ggplot2)
 
-# 绘图
+# Plotting
 for (ch in as.character(chromothripsis@chromSummary[!is.na(chromothripsis@chromSummary$start), ]$chrom)) {
     plots_chr <- plot_chromothripsis(ShatterSeek_output=chromothripsis, chr=ch, sample_name=sample, genome="hg38")
     plot_chr <- arrangeGrob(plots_chr[[1]], plots_chr[[2]], plots_chr[[3]], plots_chr[[4]],

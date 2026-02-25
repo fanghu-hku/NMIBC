@@ -1,23 +1,23 @@
 ####################################################
-#yanzeqin
-#2021/12/20
-#此流程步骤为DNA测序数据的质控，比对，变异检测，CNV分析
+# Author: yanzeqin
+# Date: 2021-12-20
+# DNA-seq pipeline: QC, alignment, variant calling, CNV analysis
 #######################################################
 
 #################
 # Priority Rules
 #################
-# priority用于控制任务调度顺序，数值越大优先级越高
-# 优先级设置说明：
-#   - priority 50: 资源密集型、耗时的关键步骤（CNV分析、SV注释等）
-#                  这些步骤运行时间长，优先调度可避免被大量小任务阻塞
-#   - 默认(无priority): 普通步骤，按正常依赖顺序执行
+# Priority controls task scheduling order; higher values mean higher priority
+# Priority settings:
+#   - priority 50: Resource-intensive tasks (CNV analysis, SV annotation)
+#                  Long runtime, scheduled first to avoid blocking by small tasks
+#   - default (no priority): Normal tasks, executed in dependency order
 #
-# 设置priority 50的规则：
-#   - neoSV, neo_mergeSV: SV注释，依赖外部数据库，耗时长
-#   - CollectFragmentCounts_T, DenoiseReadCounts: GATK CNV流程关键步骤
-#   - JaBbA: CNV断点分析，计算资源密集
-#   - annotSV_mergeSV: priority 20，合并后SV注释，相对较快
+# Rules for priority 50:
+#   - neoSV, neo_mergeSV: SV annotation, depends on external databases
+#   - CollectFragmentCounts_T, DenoiseReadCounts: Key steps in GATK CNV pipeline
+#   - JaBbA: CNV breakpoint analysis, computationally intensive
+#   - annotSV_mergeSV: priority 20, merged SV annotation, relatively fast
 
 
 ###########

@@ -1,17 +1,17 @@
 #!/bin/bash
 # run_metilene_input.sh
-# 生成metilene输入文件
-# 用法: sh run_metilene_input.sh <tumor_name_file> <normal_name_file> <input_dir>
+# Generate metilene input file
+# Usage: sh run_metilene_input.sh <tumor_name_file> <normal_name_file> <input_dir>
 
 TUMOR_FILE=$1
 NORMAL_FILE=$2
 INPUT_DIR=$3
 
-# 初始化变量，不以逗号开头
+# Initialize variables (do not start with comma)
 Input1=""
 Input2=""
 
-# 读取癌症样本名称，并生成文件路径
+# Read tumor sample names and generate file paths
 while IFS= read -r l1 || [ -n "$l1" ]; do
     file1="${INPUT_DIR}/${l1}/FilterCoverage/Tumor_${l1}_Coverage_Filtered.txt"
     if [ -f "$file1" ]; then
@@ -21,7 +21,7 @@ while IFS= read -r l1 || [ -n "$l1" ]; do
     fi
 done < $TUMOR_FILE
 
-# 读取正常样本名称，并生成文件路径
+# Read normal sample names and generate file paths
 while IFS= read -r l1 || [ -n "$l1" ]; do
     file2="${INPUT_DIR}/${l1}/FilterCoverage/Normal_${l1}_Coverage_Filtered.txt"
     if [ -f "$file2" ]; then
@@ -31,14 +31,14 @@ while IFS= read -r l1 || [ -n "$l1" ]; do
     fi
 done < $NORMAL_FILE
 
-# 移除字符串前面的逗号
+# Remove leading comma from strings
 Input1="${Input1#,}"
 Input2="${Input2#,}"
 
-# 运行metilene_input.pl生成输入文件
+# Run metilene_input.pl to generate input file
 metilene_input.pl \
 	--in1 ${Input1} \
 	--in2 ${Input2} \
 	--h1 Tumor --h2 Normal
 
-# 运行后生成metilene_Tumor_Normal.input文件
+# Output: metilene_Tumor_Normal.input file

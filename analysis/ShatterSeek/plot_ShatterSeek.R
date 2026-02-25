@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # plot_ShatterSeek.R
-# 重新绘制ShatterSeek结果图
-# 用法: Rscript plot_ShatterSeek.R -r rds_file -n sample_name -c chr -o output_dir --redir result_dir
+# Replot ShatterSeek results
+# Usage: Rscript plot_ShatterSeek.R -r rds_file -n sample_name -c chr -o output_dir --redir result_dir
 
 suppressPackageStartupMessages(library(optparse))
 

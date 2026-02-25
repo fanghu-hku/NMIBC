@@ -1,68 +1,78 @@
-# DMR分析流程 (metilene)
+# DMR Analysis Pipeline (metilene)
 
-## 流程说明
+## Overview
 
-本流程使用metilene工具进行WGBS数据的差异甲基化区域(DMR)分析。
+This pipeline uses metilene for differential methylation region (DMR) analysis of WGBS data.
 
-## 步骤
+## Steps
 
-### 1. 样本分类
+### 1. Sample classification
+```bash
 sh sample.sh samples_all pre_sample_all
+```
 
-### 2. 数据预处理
-# 对每个样本进行bedtools sort和格式转换
+### 2. Data preprocessing
+```bash
+# bedtools sort and format conversion for each sample
 cat pre_sample_all | while read l1 l2 l3
 do
     group=${l1}
     input_file=${WGBS_DIR}/${l2}/FilterCoverage/${l2}_Coverage_Filtered.txt
     temp_f2=${WGBS_DIR}/${l2}/FilterCoverage/${group}_temp_bedttool.txt
     bedtools sort -i ${input_file} > ${temp_f2}
-    sh sort_cover.sh ${input_file} ${WGBS_DIR}/${l2}/FilterCoverage/${group}_${l2}_Coverage_Filtered.txt} \
+    sh sort_cover.sh ${input_file} ${WGBS_DIR}/${l2}/FilterCoverage/${group}_${l2}_Coverage_Filtered.txt \
         ${WGBS_DIR}/${l2}/FilterCoverage/${group}_temp \
         ${WGBS_DIR}/${l2}/FilterCoverage/${group}_temp_bedttool.txt \
         ${WGBS_DIR}/${l2}/FilterCoverage/${group}_temp_bedttool_chr.txt
 done
+```
 
-### 3. 生成metilene输入文件
+### 3. Generate metilene input file
+```bash
 sh run_metilene_input.sh tumor_name normal_name ${WGBS_DIR}
+```
 
-### 4. 运行metilene
+### 4. Run metilene
 
-# de novo模式
+```bash
+# de novo mode
 metilene -t 8 -a Tumor -b Normal metilene_Tumor_Normal.input > metilene_denovo.output
 cat metilene_denovo.output | sort -V -k1,1 -k2,2n > metilene_denovo_sorted.output
 
-# CpG island模式
-# 准备CpG island bed文件
+# CpG island mode
+# Prepare CpG island bed file
 awk -F'\t' 'BEGIN {OFS="\t"} {$1=""; $0=$0; sub(/^\t/, ""); print}' cpglslandExt2.txt > cpglslandExt2.bed
 
 metilene -t 8 -a Tumor -b Normal -f 2 -B cpglslandExt2.bed metilene_Tumor_Normal.input | sort -V -k1,1 -k2,2n > metilene_cpgisland_sorted.output
+```
 
-### 5. 结果过滤和格式化
-# 使用metilene_output.pl进行结果过滤
+### 5. Result filtering and formatting
+```bash
+# Filter results using metilene_output.pl
 metilene_output.pl -q metilene_denovo_sorted.output -o metilene_CG -a Tumor -b Normal -p 0.05 -c 5 -d 0.1
 
-# 生成最终结果
+# Generate final results
 sort -g -k4 metilene_CG_qval.0.05.out | awk 'BEGIN{FS="\t";OFS="\t";print "chr","start","stop","qvalue","mean_methylation_difference","CpGs","mean_in_Case","mean_in_Control"}{print $0}' > metilene.result.xls
 
 sort -k1,1 -k2,2n metilene.result.xls | sed '1d' > metilene.result.sorted.bed
 sed -i "s/^/chr/g" metilene.result.sorted.bed
+```
 
-## DMR注释策略
+## DMR Annotation Strategy
 
-- CGI: CpG岛
-- CIMP: 启动子的CpG岛
-- 基因划分: promoter, enhancer, gene body, coding exon, 5' UTR, 3' UTR, intron, intergenic region
+- CGI: CpG island
+- CIMP: CpG island in promoter
+- Gene regions: promoter, enhancer, gene body, coding exon, 5' UTR, 3' UTR, intron, intergenic region
 
-注释顺序:
+Annotation workflow:
 1. bedtools intersect -a dmr.bed -b exon.bed -wa -wb > dmrs_exons.bed
 2. bedtools subtract -a dmr.bed -b exons.bed > dmrs_no_exons.bed
 
-需要的注释文件:
-- 编码外显子 (exons.bed)
-- 启动子 (promoters.bed)
-- 增强子 (enhancers.bed)
+Required annotation files:
+- Coding exons (exons.bed)
+- Promoters (promoters.bed)
+- Enhancers (enhancers.bed)
 - 5' UTR (5utr.bed)
 - 3' UTR (3utr.bed)
-- 内含子 (introns.bed)
-- 基因间区 (intergenic.bed)
+- Introns (introns.bed)
+- Intergenic regions (intergenic.bed)
