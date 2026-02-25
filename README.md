@@ -75,4 +75,4 @@ snakemake -s pipeline/DNA.smk --configfile config/DNA.config.yaml \
 
 ## Author
 
-Zeqin Yan
+Hu Fang
